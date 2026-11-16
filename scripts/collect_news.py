@@ -93,10 +93,12 @@ def request_json(url: str, *, method: str = "GET", payload: Any = None,
 
 
 def supabase_headers(secret: str) -> dict[str, str]:
-    return {
-        "apikey": secret,
-        "Authorization": f"Bearer {secret}",
-    }
+    # New sb_secret_* keys are API keys, not JWTs: send them only via apikey.
+    # Keep Bearer auth for the legacy JWT-based service_role key.
+    headers = {"apikey": secret}
+    if not secret.startswith("sb_secret_"):
+        headers["Authorization"] = f"Bearer {secret}"
+    return headers
 
 
 def supabase_url(base: str, path: str) -> str:
