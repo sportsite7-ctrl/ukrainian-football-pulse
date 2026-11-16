@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { TournamentDirectory } from "@/components/tournaments/TournamentDirectory";
 import { FeedLayout } from "@/components/news/FeedLayout";
 import { PageIntro } from "@/components/site/PageIntro";
 import { newsListQueryOptions } from "@/lib/news/api";
@@ -21,6 +22,7 @@ function Page() {
   return (
     <>
       <PageIntro title="Турніри" subtitle="Ліга чемпіонів, Ліга Європи, ЧС, Євро та Ліга націй" />
+      <TournamentDirectory />
       <FeedLayout defaultCategory="tournaments" />
     </>
   );
