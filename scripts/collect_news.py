@@ -271,6 +271,15 @@ def gemini_summarize(api_key: str, model: str, candidates: list[dict[str, Any]])
         "\nДозволені ID турнірів: " + json.dumps(TOURNAMENT_GUIDE, ensure_ascii=False) +
         "\nRSS-матеріали:\n" + json.dumps(prompt_items, ensure_ascii=False)
     )
+    payload = {
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.2,
+            "responseMimeType": "application/json",
+            "maxOutputTokens": 8192,
+        },
+    }
+
     def generate_with_model(model_name: str, attempts: int = 3) -> Any:
         model_url = (
             "https://generativelanguage.googleapis.com/v1beta/models/"
@@ -308,7 +317,7 @@ def gemini_summarize(api_key: str, model: str, candidates: list[dict[str, Any]])
     try:
         result = generate_with_model(model)
     except (RuntimeError, TimeoutError, urllib.error.URLError) as primary_error:
-        fallback_model = "gemini-3.5-flash-lite"
+        fallback_model = "gemini-3.1-flash-lite"
         if model == fallback_model:
             raise
         log(
