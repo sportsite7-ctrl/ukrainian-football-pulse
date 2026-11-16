@@ -1,23 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-// The home route ships no og:image, so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+import { FeedLayout } from "@/components/news/FeedLayout";
+import { TopStories } from "@/components/news/TopStories";
+import { PageIntro } from "@/components/site/PageIntro";
+import { newsListQueryOptions } from "@/lib/news/api";
+
 export const Route = createFileRoute("/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(newsListQueryOptions()),
+  head: () => ({
+    meta: [
+      { title: "SPORT PULSE — головне у футболі" },
+      { name: "description", content: "Останні новини світового футболу українською в одному місці." },
+      { property: "og:title", content: "SPORT PULSE — головне у футболі" },
+      { property: "og:description", content: "Останні новини світового футболу українською в одному місці." },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  const { data } = useSuspenseQuery(newsListQueryOptions());
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <>
+      <PageIntro eyebrow="Футбольні новини" title="Головне у футболі" subtitle="Останні новини світового футболу в одному місці" />
+      <TopStories articles={data} />
+      <FeedLayout />
+    </>
   );
 }

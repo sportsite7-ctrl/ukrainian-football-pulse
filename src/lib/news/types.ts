@@ -40,7 +40,7 @@ export interface NewsArticle {
   publishedAt: string;
   source: NewsSource;
   imageUrl: string | null;
-  imageAlt?: string;
+  imageAlt?: string | undefined;
   /** Editor's pick for the main slot on the home page. */
   isFeatured?: boolean;
 }

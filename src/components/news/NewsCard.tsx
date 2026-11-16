@@ -10,8 +10,8 @@ type Variant = "feature" | "default" | "wide" | "horizontal";
 interface NewsCardProps {
   article: NewsArticle;
   variant?: Variant;
-  className?: string;
-  priority?: boolean;
+  className?: string | undefined;
+  priority?: boolean | undefined;
 }
 
 function Thumb({
@@ -21,9 +21,9 @@ function Thumb({
   sizes,
 }: {
   article: NewsArticle;
-  className?: string;
-  priority?: boolean;
-  sizes?: string;
+  className?: string | undefined;
+  priority?: boolean | undefined;
+  sizes?: string | undefined;
 }) {
   if (!article.imageUrl) return null;
   return (
