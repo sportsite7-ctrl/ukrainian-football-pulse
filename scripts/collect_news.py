@@ -294,7 +294,7 @@ def gemini_summarize(api_key: str, model: str, candidates: list[dict[str, Any]])
             + urllib.parse.quote(model_name, safe="")
             + ":generateContent"
         )
-        delays = (3, 8)
+        delays = (5, 15)
         for attempt in range(attempts):
             try:
                 return request_json(
@@ -302,7 +302,7 @@ def gemini_summarize(api_key: str, model: str, candidates: list[dict[str, Any]])
                     method="POST",
                     payload=payload,
                     headers={"x-goog-api-key": api_key},
-                    timeout=60,
+                    timeout=90,
                 )
             except (RuntimeError, TimeoutError, urllib.error.URLError) as exc:
                 message = str(exc)
@@ -322,23 +322,22 @@ def gemini_summarize(api_key: str, model: str, candidates: list[dict[str, Any]])
                 )
                 time.sleep(delay)
 
-    try:
-        result = generate_with_model(model)
-    except (RuntimeError, TimeoutError, urllib.error.URLError) as primary_error:
-        fallback_model = "gemini-3.1-flash-lite"
-        if model == fallback_model:
-            raise
-        log(
-            f"Primary Gemini model {model} unavailable after retries; "
-            f"switching to fallback model {fallback_model}."
-        )
+    result = None
+    failures: list[str] = []
+    fallback_models = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
+    for model_name in [model] + [name for name in fallback_models if name != model]:
         try:
-            result = generate_with_model(fallback_model, attempts=2)
-        except Exception as fallback_error:
-            raise RuntimeError(
-                f"Primary model failed ({primary_error}); "
-                f"fallback model {fallback_model} also failed ({fallback_error})."
-            ) from fallback_error
+            attempts = 3 if model_name == model else 2
+            if model_name != model:
+                log(f"Trying backup Gemini model {model_name}.")
+            result = generate_with_model(model_name, attempts=attempts)
+            log(f"Gemini model {model_name} returned a response successfully.")
+            break
+        except (RuntimeError, TimeoutError, urllib.error.URLError) as exc:
+            failures.append(f"{model_name}: {exc}")
+            log(f"Gemini model {model_name} failed: {exc}")
+    if result is None:
+        raise RuntimeError("All Gemini models failed: " + " | ".join(failures))
     try:
         text = result["candidates"][0]["content"]["parts"][0]["text"]
         parsed = json.loads(text)
