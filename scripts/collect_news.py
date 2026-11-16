@@ -284,13 +284,35 @@ def gemini_summarize(api_key: str, model: str, candidates: list[dict[str, Any]])
             "maxOutputTokens": 8192,
         },
     }
-    result = request_json(
-        url,
-        method="POST",
-        payload=payload,
-        headers={"x-goog-api-key": api_key},
-        timeout=90,
-    )
+    # Gemini may temporarily return 503 (model capacity) or 429 (rate limit).
+    # Retry only transient API errors with exponential backoff; never retry auth
+    # or request-validation failures.
+    result = None
+    retry_delays = (2, 4, 8, 16)
+    for attempt in range(len(retry_delays) + 1):
+        try:
+            result = request_json(
+                url,
+                method="POST",
+                payload=payload,
+                headers={"x-goog-api-key": api_key},
+                timeout=90,
+            )
+            break
+        except RuntimeError as exc:
+            message = str(exc)
+            transient = any(
+                message.startswith(f"HTTP {status} ")
+                for status in (408, 429, 500, 502, 503, 504)
+            )
+            if not transient or attempt >= len(retry_delays):
+                raise
+            delay = retry_delays[attempt]
+            log(
+                f"Gemini temporarily unavailable ({message[:80]}). "
+                f"Retrying in {delay}s (attempt {attempt + 2}/5)."
+            )
+            time.sleep(delay)
     try:
         text = result["candidates"][0]["content"]["parts"][0]["text"]
         parsed = json.loads(text)
