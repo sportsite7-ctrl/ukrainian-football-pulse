@@ -42,7 +42,7 @@ export function TournamentDirectory() {
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{tournament.description}</p>
               <div className="mt-5 flex items-center justify-between gap-3 border-t pt-4">
                 <span className="text-xs font-medium text-muted-foreground">{meta.region} · {count} новин</span>
-                <Link to="/news/" search={{ tournament: tournament.id }} className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-strong">
+                <Link to="/news/" className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-strong">
                   Новини <ArrowUpRight className="size-4" />
                 </Link>
               </div>
