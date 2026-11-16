@@ -1,26 +1,77 @@
-import type { TournamentId } from "./types";
+import { queryOptions } from "@tanstack/react-query";
 
-/** Demo fixtures/results for the Matches page. Will come from the same data source as news later. */
 export interface Fixture {
   id: string;
   home: string;
   away: string;
-  kickoff: string; // ISO UTC
-  tournament: TournamentId;
+  date: string;
+  competition: string;
+  round?: string;
   score?: [number, number];
+  status: "scheduled" | "finished";
 }
 
-export const UPCOMING_FIXTURES: Fixture[] = [
-  { id: "f1", home: "Інтер", away: "Баварія", kickoff: "2026-11-24T20:00:00Z", tournament: "ucl" },
-  { id: "f2", home: "Реал Мадрид", away: "Ліверпуль", kickoff: "2026-11-24T20:00:00Z", tournament: "ucl" },
-  { id: "f3", home: "Арсенал", away: "ПСЖ", kickoff: "2026-11-25T20:00:00Z", tournament: "ucl" },
-  { id: "f4", home: "Манчестер Сіті", away: "Ювентус", kickoff: "2026-11-25T20:00:00Z", tournament: "ucl" },
-  { id: "f5", home: "Рома", away: "Порту", kickoff: "2026-11-26T17:45:00Z", tournament: "uel" },
-];
+interface RawMatch {
+  round?: string;
+  date: string;
+  time?: string;
+  team1: string;
+  team2: string;
+  score?: { ft?: [number, number]; ht?: [number, number] } | [number, number];
+}
 
-export const RECENT_RESULTS: Fixture[] = [
-  { id: "r1", home: "Франція", away: "Італія", kickoff: "2026-11-15T19:45:00Z", tournament: "nations-league", score: [2, 1] },
-  { id: "r2", home: "Німеччина", away: "Нідерланди", kickoff: "2026-11-15T19:45:00Z", tournament: "nations-league", score: [2, 2] },
-  { id: "r3", home: "Англія", away: "Греція", kickoff: "2026-11-15T17:00:00Z", tournament: "nations-league", score: [3, 0] },
-  { id: "r4", home: "Іспанія", away: "Данія", kickoff: "2026-11-14T19:45:00Z", tournament: "nations-league", score: [3, 0] },
-];
+interface RawLeague {
+  name: string;
+  matches: RawMatch[];
+}
+
+const LEAGUES = [
+  { id: "epl", label: "Англійська Прем'єр-ліга", url: "https://raw.githubusercontent.com/openfootball/football.json/master/2026-27/en.1.json" },
+  { id: "laliga", label: "Іспанська Ла Ліга", url: "https://raw.githubusercontent.com/openfootball/football.json/master/2026-27/es.1.json" },
+  { id: "bundesliga", label: "Німецька Бундесліга", url: "https://raw.githubusercontent.com/openfootball/football.json/master/2026-27/de.1.json" },
+  { id: "seriea", label: "Італійська Серія А", url: "https://raw.githubusercontent.com/openfootball/football.json/master/2026-27/it.1.json" },
+  { id: "ligue1", label: "Французька Ліга 1", url: "https://raw.githubusercontent.com/openfootball/football.json/master/2026-27/fr.1.json" },
+] as const;
+
+function getScore(score: RawMatch["score"]): [number, number] | undefined {
+  if (Array.isArray(score) && score.length === 2) return [Number(score[0]), Number(score[1])];
+  if (score && !Array.isArray(score) && score.ft?.length === 2) {
+    return [Number(score.ft[0]), Number(score.ft[1])];
+  }
+  return undefined;
+}
+
+async function fetchLeague(league: (typeof LEAGUES)[number]): Promise<Fixture[]> {
+  const response = await fetch(league.url, { headers: { Accept: "application/json" } });
+  if (!response.ok) throw new Error(`${league.label}: HTTP ${response.status}`);
+  const data = (await response.json()) as RawLeague;
+  if (!Array.isArray(data.matches)) throw new Error(`Невідомий формат даних: ${league.label}`);
+
+  return data.matches.map((match, index) => {
+    const score = getScore(match.score);
+    return {
+      id: `${league.id}-${match.date}-${index}`,
+      home: match.team1,
+      away: match.team2,
+      date: match.date,
+      competition: league.label,
+      round: match.round,
+      score,
+      status: score ? "finished" : "scheduled",
+    };
+  });
+}
+
+export async function fetchFixtures(): Promise<Fixture[]> {
+  const results = await Promise.allSettled(LEAGUES.map(fetchLeague));
+  const fixtures = results.flatMap((result) => result.status === "fulfilled" ? result.value : []);
+  if (!fixtures.length) throw new Error("Календар матчів тимчасово недоступний");
+  return fixtures.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export const fixturesQueryOptions = () =>
+  queryOptions({
+    queryKey: ["football", "fixtures"],
+    queryFn: fetchFixtures,
+    staleTime: 30 * 60_000,
+  });
