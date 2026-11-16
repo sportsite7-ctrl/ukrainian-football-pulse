@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { MatchCenter } from "@/components/matches/MatchCenter";
 import { FeedLayout } from "@/components/news/FeedLayout";
 import { PageIntro } from "@/components/site/PageIntro";
 import { newsListQueryOptions } from "@/lib/news/api";
@@ -21,6 +22,7 @@ function Page() {
   return (
     <>
       <PageIntro title="Матчі" subtitle="Огляди, анонси та результати головних поєдинків" />
+      <MatchCenter />
       <FeedLayout defaultCategory="matches" />
     </>
   );
