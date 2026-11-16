@@ -271,48 +271,57 @@ def gemini_summarize(api_key: str, model: str, candidates: list[dict[str, Any]])
         "\nДозволені ID турнірів: " + json.dumps(TOURNAMENT_GUIDE, ensure_ascii=False) +
         "\nRSS-матеріали:\n" + json.dumps(prompt_items, ensure_ascii=False)
     )
-    url = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        + urllib.parse.quote(model, safe="")
-        + ":generateContent"
-    )
-    payload = {
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": 0.2,
-            "responseMimeType": "application/json",
-            "maxOutputTokens": 8192,
-        },
-    }
-    # Gemini may temporarily return 503 (model capacity) or 429 (rate limit).
-    # Retry only transient API errors with exponential backoff; never retry auth
-    # or request-validation failures.
-    result = None
-    retry_delays = (2, 4, 8, 16)
-    for attempt in range(len(retry_delays) + 1):
+    def generate_with_model(model_name: str, attempts: int = 3) -> Any:
+        model_url = (
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            + urllib.parse.quote(model_name, safe="")
+            + ":generateContent"
+        )
+        delays = (3, 8)
+        for attempt in range(attempts):
+            try:
+                return request_json(
+                    model_url,
+                    method="POST",
+                    payload=payload,
+                    headers={"x-goog-api-key": api_key},
+                    timeout=60,
+                )
+            except (RuntimeError, TimeoutError, urllib.error.URLError) as exc:
+                message = str(exc)
+                transient = (
+                    isinstance(exc, (TimeoutError, urllib.error.URLError))
+                    or any(
+                        message.startswith(f"HTTP {status} ")
+                        for status in (408, 429, 500, 502, 503, 504)
+                    )
+                )
+                if not transient or attempt >= attempts - 1:
+                    raise
+                delay = delays[attempt]
+                log(
+                    f"Gemini {model_name} temporarily unavailable. "
+                    f"Retrying in {delay}s (attempt {attempt + 2}/{attempts})."
+                )
+                time.sleep(delay)
+
+    try:
+        result = generate_with_model(model)
+    except (RuntimeError, TimeoutError, urllib.error.URLError) as primary_error:
+        fallback_model = "gemini-3.5-flash-lite"
+        if model == fallback_model:
+            raise
+        log(
+            f"Primary Gemini model {model} unavailable after retries; "
+            f"switching to fallback model {fallback_model}."
+        )
         try:
-            result = request_json(
-                url,
-                method="POST",
-                payload=payload,
-                headers={"x-goog-api-key": api_key},
-                timeout=90,
-            )
-            break
-        except RuntimeError as exc:
-            message = str(exc)
-            transient = any(
-                message.startswith(f"HTTP {status} ")
-                for status in (408, 429, 500, 502, 503, 504)
-            )
-            if not transient or attempt >= len(retry_delays):
-                raise
-            delay = retry_delays[attempt]
-            log(
-                f"Gemini temporarily unavailable ({message[:80]}). "
-                f"Retrying in {delay}s (attempt {attempt + 2}/5)."
-            )
-            time.sleep(delay)
+            result = generate_with_model(fallback_model, attempts=2)
+        except Exception as fallback_error:
+            raise RuntimeError(
+                f"Primary model failed ({primary_error}); "
+                f"fallback model {fallback_model} also failed ({fallback_error})."
+            ) from fallback_error
     try:
         text = result["candidates"][0]["content"]["parts"][0]["text"]
         parsed = json.loads(text)
