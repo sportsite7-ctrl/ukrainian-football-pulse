@@ -55,8 +55,8 @@ async function fetchLeague(league: (typeof LEAGUES)[number]): Promise<Fixture[]>
       away: match.team2,
       date: match.date,
       competition: league.label,
-      round: match.round,
-      score,
+      ...(match.round ? { round: match.round } : {}),
+      ...(score ? { score } : {}),
       status: score ? "finished" : "scheduled",
     };
   });
