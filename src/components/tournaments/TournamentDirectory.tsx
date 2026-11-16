@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Globe2, Trophy } from "lucide-react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
+import { newsListQueryOptions } from "@/lib/news/api";
 import { TOURNAMENTS } from "@/lib/news/taxonomy";
 
 const tournamentMeta: Record<string, { region: string; format: string }> = {
@@ -12,18 +14,22 @@ const tournamentMeta: Record<string, { region: string; format: string }> = {
 };
 
 export function TournamentDirectory() {
+  const { data: articles } = useSuspenseQuery(newsListQueryOptions());
+
   return (
     <section className="container-page pb-8">
       <div className="mb-5 flex items-end justify-between gap-3 border-b-2 border-foreground pb-2">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-primary">Турнірний гід</p>
           <h2 className="mt-1 font-display text-lg font-bold sm:text-xl">Головні футбольні змагання</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Оберіть турнір, щоб переглянути пов'язані новини.</p>
         </div>
         <span className="hidden text-sm text-muted-foreground sm:block">{TOURNAMENTS.length} турнірів</span>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {TOURNAMENTS.map((tournament, index) => {
           const meta = tournamentMeta[tournament.id];
+          const count = articles.filter((article) => article.tournaments.includes(tournament.id)).length;
           return (
             <article key={tournament.id} className="group flex min-w-0 flex-col rounded-xl border bg-card p-5 shadow-card transition-shadow hover:shadow-card-hover">
               <div className="flex items-start justify-between gap-3">
@@ -35,8 +41,8 @@ export function TournamentDirectory() {
               <h3 className="mt-5 font-display text-base font-bold leading-snug">{tournament.name}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{tournament.description}</p>
               <div className="mt-5 flex items-center justify-between gap-3 border-t pt-4">
-                <span className="text-xs font-medium text-muted-foreground">{meta.region}</span>
-                <Link to="/news/" className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-strong">
+                <span className="text-xs font-medium text-muted-foreground">{meta.region} · {count} новин</span>
+                <Link to="/news/" search={{ tournament: tournament.id }} className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-strong">
                   Новини <ArrowUpRight className="size-4" />
                 </Link>
               </div>
