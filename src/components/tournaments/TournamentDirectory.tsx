@@ -28,7 +28,7 @@ export function TournamentDirectory() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {TOURNAMENTS.map((tournament, index) => {
-          const meta = tournamentMeta[tournament.id];
+          const meta = tournamentMeta[tournament.id] ?? { region: "Міжнародний футбол", format: "Футбольний турнір" };
           const count = articles.filter((article) => article.tournaments.includes(tournament.id)).length;
           return (
             <article key={tournament.id} className="group flex min-w-0 flex-col rounded-xl border bg-card p-5 shadow-card transition-shadow hover:shadow-card-hover">
@@ -42,7 +42,7 @@ export function TournamentDirectory() {
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{tournament.description}</p>
               <div className="mt-5 flex items-center justify-between gap-3 border-t pt-4">
                 <span className="text-xs font-medium text-muted-foreground">{meta.region} · {count} новин</span>
-                <Link to="/news/" className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-strong">
+                <Link to="/news" className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-strong">
                   Новини <ArrowUpRight className="size-4" />
                 </Link>
               </div>
