@@ -274,7 +274,7 @@ def gemini_summarize(api_key: str, model: str, candidates: list[dict[str, Any]])
     url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
         + urllib.parse.quote(model, safe="")
-        + ":generateContent?key=" + urllib.parse.quote(api_key, safe="")
+        + ":generateContent"
     )
     payload = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
@@ -284,7 +284,13 @@ def gemini_summarize(api_key: str, model: str, candidates: list[dict[str, Any]])
             "maxOutputTokens": 8192,
         },
     }
-    result = request_json(url, method="POST", payload=payload, timeout=90)
+    result = request_json(
+        url,
+        method="POST",
+        payload=payload,
+        headers={"x-goog-api-key": api_key},
+        timeout=90,
+    )
     try:
         text = result["candidates"][0]["content"]["parts"][0]["text"]
         parsed = json.loads(text)
