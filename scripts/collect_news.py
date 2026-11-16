@@ -40,8 +40,14 @@ DEFAULT_SOURCES = [
         "active": True,
     },
     {
-        "name": "ESPN Soccer",
-        "feed_url": "https://www.espn.com/espn/rss/soccer/news",
+        "name": "Sky Sports Football",
+        "feed_url": "https://www.skysports.com/rss/11095",
+        "type": "rss",
+        "active": True,
+    },
+    {
+        "name": "The Guardian Football",
+        "feed_url": "https://www.theguardian.com/football/rss",
         "type": "rss",
         "active": True,
     },
@@ -107,14 +113,15 @@ def supabase_url(base: str, path: str) -> str:
 
 def ensure_sources(base: str, secret: str) -> list[dict[str, Any]]:
     headers = supabase_headers(secret)
-    rows = request_json(
-        supabase_url(base, "sources?select=id,name,feed_url,type,active&active=eq.true&order=name.asc"),
+
+    # Keep the source list up to date on every run. The old ESPN endpoint
+    # intermittently returns an empty response, so replace it with tested feeds.
+    request_json(
+        supabase_url(base, "sources?name=eq.ESPN%20Soccer"),
+        method="PATCH",
+        payload={"active": False},
         headers=headers,
     )
-    if rows:
-        return rows
-
-    log("No active RSS sources found; adding the two starter feeds.")
     request_json(
         supabase_url(base, "sources?on_conflict=feed_url"),
         method="POST",
@@ -125,6 +132,7 @@ def ensure_sources(base: str, secret: str) -> list[dict[str, Any]]:
         supabase_url(base, "sources?select=id,name,feed_url,type,active&active=eq.true&order=name.asc"),
         headers=headers,
     )
+    log(f"Configured {len(rows or [])} active RSS sources.")
     return rows or []
 
 
