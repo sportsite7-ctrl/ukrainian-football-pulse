@@ -82,6 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     // twitter:image here: every page without its own would inherit the root's preview image.
     meta: [
       { charSet: "utf-8" },
+      { name: "google-site-verification", content: "ZBic0C81M5c6gfecEZYB4SDN5SAyia5t1LdeokR3KaM" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "SPORT PULSE — футбольні новини" },
       { name: "description", content: "Українськомовний агрегатор новин європейського та світового футболу." },
