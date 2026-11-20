@@ -7,6 +7,8 @@ import { LatestNews } from "@/components/news/LatestNews";
 import { NewsMeta } from "@/components/news/NewsMeta";
 import { newsArticleQueryOptions, newsListQueryOptions } from "@/lib/news/api";
 
+const SITE_URL = "https://ukrainian-football-pulse.vercel.app";
+
 export const Route = createFileRoute("/news/$id")({
   loader: async ({ context, params }) => {
     const [article] = await Promise.all([
@@ -16,7 +18,7 @@ export const Route = createFileRoute("/news/$id")({
     if (!article) throw notFound();
     return { title: article.title, summary: article.summary };
   },
-  head: ({ loaderData }) => ({
+  head: ({ loaderData, params }) => ({
     meta: loaderData
       ? [
           { title: `${loaderData.title} — SPORT PULSE` },
@@ -26,6 +28,9 @@ export const Route = createFileRoute("/news/$id")({
           { property: "og:type", content: "article" },
         ]
       : [{ title: "Новину не знайдено — SPORT PULSE" }, { name: "robots", content: "noindex" }],
+    links: loaderData
+      ? [{ rel: "canonical", href: `${SITE_URL}/news/${encodeURIComponent(params.id)}` }]
+      : [],
   }),
   component: ArticlePage,
 });
