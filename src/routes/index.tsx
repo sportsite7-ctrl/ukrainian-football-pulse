@@ -13,7 +13,10 @@ export const Route = createFileRoute("/")({
       { title: "SPORT PULSE — головне у футболі" },
       { name: "description", content: "Останні новини світового футболу українською в одному місці." },
       { property: "og:title", content: "SPORT PULSE — головне у футболі" },
-      { property: "og:description", content: "Останні новини світового футболу українською в одному місці." },
+      { property: "og:description", content: "Останні новини світового футболу в одному місці." },
+    ],
+    links: [
+      { rel: "canonical", href: "https://ukrainian-football-pulse.vercel.app/" },
     ],
   }),
   component: Index,
