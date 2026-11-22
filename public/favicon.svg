@@ -1,1 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#fff"/><g fill="#1674df" font-family="Arial,Helvetica,sans-serif" font-size="280" font-weight="900" font-style="italic"><text x="42" y="345">S</text><text x="275" y="345">P</text></g><path d="M185 276h42l19-53 24 103 31-177 30 127h44l24-0" fill="none" stroke="#1674df" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#fff"/>
+  <text x="35" y="370" fill="#1674df" font-family="Arial Black,Arial,sans-serif" font-size="390" font-weight="900" letter-spacing="-42">SP</text>
+  <path d="M28 276 H174 L205 221 L239 324 L277 115 L313 292 L344 248 H485" fill="none" stroke="#fff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
