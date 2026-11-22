@@ -239,12 +239,11 @@ def article_image(article_url: str) -> str | None:
 
 
 def improve_article_image(item: dict[str, Any]) -> None:
-    # RSS dimensions are not consistently supplied. Ask the publisher page for its
-    # Open Graph image when the feed image is missing or explicitly small.
-    current = item.get("image_url")
-    if current:
-        return
-    item["image_url"] = article_image(item["url"])
+    # Prefer the publisher's social preview image over RSS thumbnails where available.
+    # This runs only for new stories, avoiding repeat page requests for old items.
+    original = article_image(item["url"])
+    if original:
+        item["image_url"] = original
 
 
 def parse_feed(xml_bytes: bytes, source: dict[str, Any]) -> list[dict[str, Any]]:
@@ -305,7 +304,6 @@ def fetch_candidates(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 key = normalize_url(item["url"])
                 if key not in seen_urls:
                     seen_urls.add(key)
-                    improve_article_image(item)
                     candidates.append(item)
         except Exception as exc:
             log(f"Feed unavailable ({source.get('name')}): {exc}")
@@ -467,6 +465,9 @@ def main() -> int:
     log(f"{len(fresh)} candidates remain after URL de-duplication.")
     if not fresh:
         return 0
+
+    for item in fresh:
+        improve_article_image(item)
 
     generated = gemini_summarize(api_key, model, fresh)
     published: list[dict[str, Any]] = []
