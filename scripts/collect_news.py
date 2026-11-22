@@ -7,6 +7,7 @@ Uses only Python's standard library so the GitHub Actions job needs no pip insta
 from __future__ import annotations
 
 import hashlib
+from html.parser import HTMLParser
 import html
 import json
 import os
@@ -165,14 +166,85 @@ def clean_text(value: str | None) -> str:
 
 
 def entry_image(entry: ET.Element) -> str | None:
+    """Choose the best RSS image instead of blindly taking the first thumbnail."""
+    candidates: list[tuple[int, str]] = []
     for element in entry.iter():
         tag = element.tag.lower()
-        if tag.endswith("}content") or tag.endswith("}thumbnail") or tag.endswith("enclosure"):
-            url = element.attrib.get("url") or element.attrib.get("href")
-            mime = element.attrib.get("type", "")
-            if url and (not mime or mime.startswith("image/")):
-                return url
-    return None
+        if not (tag.endswith("}content") or tag.endswith("}thumbnail") or tag.endswith("enclosure")):
+            continue
+        url = element.attrib.get("url") or element.attrib.get("href")
+        mime = element.attrib.get("type", "").lower()
+        if not url or (mime and not mime.startswith("image/")):
+            continue
+        try:
+            width = int(element.attrib.get("width", "0"))
+            height = int(element.attrib.get("height", "0"))
+        except ValueError:
+            width = height = 0
+        score = width * height
+        if tag.endswith("}thumbnail"):
+            score -= 500_000
+        candidates.append((score, url))
+    return max(candidates, default=(0, None), key=lambda item: item[0])[1]
+
+
+class ArticleImageParser(HTMLParser):
+    """Read social preview images from the original article HTML."""
+    def __init__(self) -> None:
+        super().__init__()
+        self.images: list[tuple[int, str]] = []
+        self.pending_width = 0
+        self.pending_height = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag.lower() != "meta":
+            return
+        values = {key.lower(): (value or "").strip() for key, value in attrs}
+        key = (values.get("property") or values.get("name") or "").lower()
+        content = values.get("content", "")
+        if key in {"og:image:width", "twitter:image:width"}:
+            try:
+                self.pending_width = int(content)
+            except ValueError:
+                pass
+        elif key in {"og:image:height", "twitter:image:height"}:
+            try:
+                self.pending_height = int(content)
+            except ValueError:
+                pass
+        elif key in {"og:image", "twitter:image", "twitter:image:src"} and content.startswith(("https://", "http://")):
+            self.images.append((self.pending_width * self.pending_height, content))
+
+
+def article_image(article_url: str) -> str | None:
+    """Use the publisher's social preview image when RSS only exposes a small thumbnail."""
+    try:
+        req = urllib.request.Request(
+            article_url,
+            headers={"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml"},
+        )
+        with urllib.request.urlopen(req, timeout=12) as response:
+            if response.status >= 400:
+                return None
+            page = response.read(1_000_000).decode("utf-8", errors="replace")
+        parser = ArticleImageParser()
+        parser.feed(page)
+        if not parser.images:
+            return None
+        # Prefer an explicitly sized large image; otherwise prefer Open Graph's first image.
+        return max(parser.images, key=lambda item: item[0])[1]
+    except Exception as exc:
+        log(f"Could not inspect article image ({article_url}): {exc}")
+        return None
+
+
+def improve_article_image(item: dict[str, Any]) -> None:
+    # RSS dimensions are not consistently supplied. Ask the publisher page for its
+    # Open Graph image when the feed image is missing or explicitly small.
+    current = item.get("image_url")
+    if current:
+        return
+    item["image_url"] = article_image(item["url"])
 
 
 def parse_feed(xml_bytes: bytes, source: dict[str, Any]) -> list[dict[str, Any]]:
@@ -233,6 +305,7 @@ def fetch_candidates(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 key = normalize_url(item["url"])
                 if key not in seen_urls:
                     seen_urls.add(key)
+                    improve_article_image(item)
                     candidates.append(item)
         except Exception as exc:
             log(f"Feed unavailable ({source.get('name')}): {exc}")
