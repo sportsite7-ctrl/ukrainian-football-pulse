@@ -89,14 +89,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "SPORT PULSE — футбольні новини" },
       { property: "og:description", content: "Українськомовний агрегатор новин європейського та світового футболу." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "SPORT PULSE" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    scripts: [{
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "SPORT PULSE",
+        alternateName: "SportPulse",
+        url: "https://ukrainian-football-pulse.vercel.app/",
+      }),
+    }],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "alternate icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
