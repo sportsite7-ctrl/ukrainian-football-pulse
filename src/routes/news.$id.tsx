@@ -8,7 +8,7 @@ import { NewsMeta } from "@/components/news/NewsMeta";
 import { newsArticleQueryOptions, newsListQueryOptions } from "@/lib/news/api";
 
 const SITE_URL = "https://ukrainian-football-pulse.vercel.app";
-const BRAND_IMAGE = `${SITE_URL}/og-sport-pulse.png`;
+const BRAND_IMAGE = `${SITE_URL}/og-sport-pulse.svg`;
 
 export const Route = createFileRoute("/news/$id")({
   loader: async ({ context, params }) => {
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/news/$id")({
             "@type": "Organization",
             name: "SPORT PULSE",
             url: SITE_URL,
-            logo: { "@type": "ImageObject", url: `${SITE_URL}/favicon.png` },
+            logo: { "@type": "ImageObject", url: `${SITE_URL}/favicon.svg` },
           },
         }
       : null;
