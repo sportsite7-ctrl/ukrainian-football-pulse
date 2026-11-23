@@ -15,6 +15,9 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 
+const SITE_URL = "https://ukrainian-football-pulse.vercel.app";
+const BRAND_ICON = `${SITE_URL}/favicon.png`;
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -77,37 +80,47 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
-    // Replace these placeholders with the app's name and description when first building the app.
-    // Each content route, / included, must still set its own head(). Never add og:image or
-    // twitter:image here: every page without its own would inherit the root's preview image.
     meta: [
       { charSet: "utf-8" },
       { name: "google-site-verification", content: "ZBic0C81M5c6gfecEZYB4SDN5SAyia5t1LdeokR3KaM" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "SPORT PULSE — футбольні новини" },
-      { name: "description", content: "Українськомовний агрегатор новин європейського та світового футболу." },
+      { name: "description", content: "Футбольні новини українською: трансфери, матчі, клуби, турніри та огляди." },
       { property: "og:title", content: "SPORT PULSE — футбольні новини" },
-      { property: "og:description", content: "Українськомовний агрегатор новин європейського та світового футболу." },
+      { property: "og:description", content: "Футбольні новини українською: трансфери, матчі, клуби, турніри та огляди." },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "SPORT PULSE" },
+      { property: "og:locale", content: "uk_UA" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    scripts: [{
-      type: "application/ld+json",
-      children: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: "SPORT PULSE",
-        alternateName: "SportPulse",
-        url: "https://ukrainian-football-pulse.vercel.app/",
-      }),
-    }],
-    links: [
+    scripts: [
       {
-        rel: "stylesheet",
-        href: appCss,
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "SPORT PULSE",
+          alternateName: ["Sport Pulse", "SportPulse"],
+          url: SITE_URL,
+          inLanguage: "uk",
+        }),
       },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "SPORT PULSE",
+          url: SITE_URL,
+          logo: BRAND_ICON,
+        }),
+      },
+    ],
+    links: [
+      { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon", sizes: "48x48" },
+      { rel: "icon", href: "/favicon.png", type: "image/png", sizes: "512x512" },
+      { rel: "apple-touch-icon", href: "/favicon.png", sizes: "512x512" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
