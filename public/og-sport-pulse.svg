@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07142d"/><stop offset="1" stop-color="#103b91"/></linearGradient><radialGradient id="glow"><stop offset="0" stop-color="#1674df" stop-opacity=".5"/><stop offset="1" stop-color="#1674df" stop-opacity="0"/></radialGradient></defs>
+<rect width="1200" height="630" fill="url(#bg)"/><circle cx="920" cy="260" r="420" fill="url(#glow)"/>
+<rect x="90" y="185" width="230" height="230" rx="52" fill="#1768f5"/>
+<text x="205" y="310" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="110" font-weight="900" fill="#fff">SP</text>
+<path d="M115 355h50l22-28 27 55 33-80 30 53h20" fill="none" stroke="#66e5ff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="380" y="270" font-family="Arial,Helvetica,sans-serif" font-size="86" font-weight="900" letter-spacing="2" fill="#fff">SPORT PULSE</text>
+<text x="385" y="340" font-family="Arial,Helvetica,sans-serif" font-size="36" fill="#c4dcff">ФУТБОЛЬНІ НОВИНИ УКРАЇНСЬКОЮ</text>
+<rect x="385" y="385" width="315" height="52" rx="26" fill="#1674df"/><text x="542" y="420" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="700" fill="#fff">НОВИНИ • МАТЧІ • ТРАНСФЕРИ</text>
+<path d="M90 540h1020" stroke="#53a8ff" stroke-width="3" opacity=".7"/>
+</svg>
