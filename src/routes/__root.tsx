@@ -16,7 +16,7 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 
 const SITE_URL = "https://ukrainian-football-pulse.vercel.app";
-const BRAND_ICON = `${SITE_URL}/favicon.png`;
+const BRAND_ICON = `${SITE_URL}/favicon.svg`;
 
 function NotFoundComponent() {
   return (
@@ -118,9 +118,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon", sizes: "48x48" },
-      { rel: "icon", href: "/favicon.png", type: "image/png", sizes: "512x512" },
-      { rel: "apple-touch-icon", href: "/favicon.png", sizes: "512x512" },
+      { rel: "alternate", type: "application/rss+xml", title: "SPORT PULSE RSS", href: "/feed.xml" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml", sizes: "any" },
+      
+      
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
