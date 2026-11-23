@@ -44,7 +44,7 @@ export const Route = createFileRoute("/news/$id")({
             "@type": "Organization",
             name: "SPORT PULSE",
             url: SITE_URL,
-            logo: { "@type": "ImageObject", url: `${SITE_URL}/favicon.svg` },
+            logo: { "@type": "ImageObject", url: `${SITE_URL}/favicon.png` },
           },
         }
       : null;
