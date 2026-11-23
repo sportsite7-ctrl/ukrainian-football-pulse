@@ -8,6 +8,7 @@ import { NewsMeta } from "@/components/news/NewsMeta";
 import { newsArticleQueryOptions, newsListQueryOptions } from "@/lib/news/api";
 
 const SITE_URL = "https://ukrainian-football-pulse.vercel.app";
+const BRAND_IMAGE = `${SITE_URL}/og-sport-pulse.png`;
 
 export const Route = createFileRoute("/news/$id")({
   loader: async ({ context, params }) => {
@@ -16,22 +17,66 @@ export const Route = createFileRoute("/news/$id")({
       context.queryClient.ensureQueryData(newsListQueryOptions()),
     ]);
     if (!article) throw notFound();
-    return { title: article.title, summary: article.summary };
+    return {
+      title: article.title,
+      summary: article.summary,
+      publishedAt: article.publishedAt,
+      imageUrl: article.imageUrl,
+      category: article.category,
+    };
   },
-  head: ({ loaderData, params }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.title} — SPORT PULSE` },
-          { name: "description", content: loaderData.summary },
-          { property: "og:title", content: loaderData.title },
-          { property: "og:description", content: loaderData.summary },
-          { property: "og:type", content: "article" },
-        ]
-      : [{ title: "Новину не знайдено — SPORT PULSE" }, { name: "robots", content: "noindex" }],
-    links: loaderData
-      ? [{ rel: "canonical", href: `${SITE_URL}/news/${encodeURIComponent(params.id)}` }]
-      : [],
-  }),
+  head: ({ loaderData, params }) => {
+    const articleUrl = `${SITE_URL}/news/${encodeURIComponent(params.id)}`;
+    const imageUrl = loaderData?.imageUrl || BRAND_IMAGE;
+    const articleSchema = loaderData
+      ? {
+          "@context": "https://schema.org",
+          "@type": "NewsArticle",
+          headline: loaderData.title,
+          description: loaderData.summary,
+          datePublished: loaderData.publishedAt,
+          inLanguage: "uk",
+          articleSection: loaderData.category,
+          mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
+          image: imageUrl,
+          author: { "@type": "Organization", name: "SPORT PULSE", url: SITE_URL },
+          publisher: {
+            "@type": "Organization",
+            name: "SPORT PULSE",
+            url: SITE_URL,
+            logo: { "@type": "ImageObject", url: `${SITE_URL}/favicon.png` },
+          },
+        }
+      : null;
+
+    return {
+      meta: loaderData
+        ? [
+            { title: `${loaderData.title} — SPORT PULSE` },
+            { name: "description", content: loaderData.summary },
+            { property: "og:title", content: loaderData.title },
+            { property: "og:description", content: loaderData.summary },
+            { property: "og:type", content: "article" },
+            { property: "og:url", content: articleUrl },
+            { property: "og:image", content: imageUrl },
+            { property: "og:image:alt", content: loaderData.title },
+            { property: "og:site_name", content: "SPORT PULSE" },
+            { property: "og:locale", content: "uk_UA" },
+            { property: "article:published_time", content: loaderData.publishedAt },
+            { name: "twitter:card", content: "summary_large_image" },
+            { name: "twitter:title", content: loaderData.title },
+            { name: "twitter:description", content: loaderData.summary },
+            { name: "twitter:image", content: imageUrl },
+          ]
+        : [{ title: "Новину не знайдено — SPORT PULSE" }, { name: "robots", content: "noindex" }],
+      links: loaderData
+        ? [{ rel: "canonical", href: articleUrl }]
+        : [],
+      scripts: articleSchema
+        ? [{ type: "application/ld+json", children: JSON.stringify(articleSchema) }]
+        : [],
+    };
+  },
   component: ArticlePage,
 });
 
