@@ -7,7 +7,7 @@ import { PageIntro } from "@/components/site/PageIntro";
 import { newsListQueryOptions } from "@/lib/news/api";
 
 const SITE_URL = "https://ukrainian-football-pulse.vercel.app";
-const SOCIAL_IMAGE = `${SITE_URL}/og-sport-pulse.png`;
+const SOCIAL_IMAGE = `${SITE_URL}/og-sport-pulse.svg`;
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(newsListQueryOptions()),
